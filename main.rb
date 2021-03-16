@@ -79,7 +79,7 @@ end
 @bot.command(
   :showlisteners,
   description: 'Shows all servers and channels listening to the specified modlist',
-  usage: "#{opts[:prefix]}listeners <modlist id>",
+  usage: "#{opts[:prefix]}showlisteners <modlist id>",
   min_args: 1
 ) do |event, modlist_id|
   admins_only(event)
