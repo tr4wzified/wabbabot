@@ -1,0 +1,13 @@
+AllCops:
+  TargetRubyVersion: 3.0
+  Exclude:
+    - "**\\lib\\ruby\\**\\*"
+  NewCops: enable
+Layout/LineLength:
+  Enabled: false
+Metrics/BlockLength:
+  Enabled: false
+Metrics/MethodLength:
+  Enabled: false
+Style/GlobalVars:
+  Enabled: false

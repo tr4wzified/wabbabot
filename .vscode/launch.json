@@ -1,0 +1,23 @@
+{
+    // Debug Launch configuration.
+    // Make sure you have the environment variable "BUNDLE_PATH" pointing to your ruby/bin/bundle(.bat) location.
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Local",
+            "type": "Ruby",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "debuggerPort": "1234",
+            "program": "${workspaceRoot}/main.rb",
+            "showDebuggerOutput": true,
+            "useBundler": true,
+            "pathToBundler": "${env:BUNDLE_PATH}",
+            "pathToRDebugIDE": "${workspaceRoot}/bin/rdebug-ide",
+            "env": {
+                "PATH": "${env:PATH}",
+                "DISCORDRB_NONACL": "Ignore libsodium check"
+            }
+        }
+    ]
+}

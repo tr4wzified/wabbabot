@@ -1,0 +1,8 @@
+{
+    "ruby.useBundler": true,
+    "ruby.format": false,
+    "solargraph.useBundler": true,
+    "solargraph.formatting": true,
+    "solargraph.autoformat": true,
+    "solargraph.diagnostics": true
+}
