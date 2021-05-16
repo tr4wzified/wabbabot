@@ -183,12 +183,7 @@ end
 
   member = get_member_for_user(event, user)
   error(event, "I can't manage a modlist myself") if member.id == $settings['client_id']
-  modlist = nil
-  begin
-    modlist = Modlist.new(id, member.id)
-  rescue ModlistNotFoundException => e
-    error(event, e.message)
-  end
+  modlist = Modlist.new(id, member.id)
 
   begin
     return "Modlist **#{modlist.title}** managed by **#{member.username}** was added to the database." if @modlistmanager.add(modlist)
