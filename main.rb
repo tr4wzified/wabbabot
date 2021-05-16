@@ -8,14 +8,10 @@ require_relative 'helpers/webhelper'
 require_relative 'helpers/typehelper'
 require_relative 'classes/modlistmanager'
 require_relative 'classes/servermanager'
-require_relative 'errors/modlistnotfoundexception.rb'
-require_relative 'errors/duplicatemodlistexception.rb'
+require_relative 'errors/modlistnotfoundexception'
+require_relative 'errors/duplicatemodlistexception'
 
 $root_dir = __dir__.freeze
-
-$stdout.reopen("#{$root_dir}/db/logfile", "w")
-$stdout.sync = true
-$stderr.reopen($stdout)
 
 opts = Slop.parse do |arg|
   arg.string '-p', '--prefix', 'prefix to use for @bot commands', default: '!'
@@ -27,6 +23,13 @@ opts = Slop.parse do |arg|
     puts Slop::VERSION
     exit
   end
+  arg.bool '-P', '--production', 'enable production mode (keep a logfile)', default: false
+end
+
+if opts[:production]
+  $stdout.reopen("#{$root_dir}/db/logfile", 'w')
+  $stdout.sync = true
+  $stderr.reopen($stdout)
 end
 
 prefix = proc do |message|
@@ -38,6 +41,7 @@ settings_path = "#{$root_dir}/db/settings.json"
 $settings = JSON.parse(File.open(settings_path).read).freeze
 @modlistmanager = ModlistManager.new
 @servermanager = ServerManager.new
+last_release_messages = {}
 
 @bot = Discordrb::Commands::CommandBot.new(
   token: $settings['token'],
@@ -113,33 +117,61 @@ end
   message = event.message.content.delete_prefix("#{opts[:prefix]}release #{modlist_id}")
 
   listening_servers = @servermanager.get_servers_listening_to_id(modlist_id)
-  channel_count = 0
-  server_count = 0
   error(event, 'There are no servers listening to this modlist') if listening_servers.empty?
+  channel_count = 0
   modlist.refresh
+  sent_messages = []
   listening_servers.each do |listening_server|
     server = @bot.servers[listening_server.id]
-    server_count += 1
     listening_server.listening_channels.each do |channel|
-      if channel.listening_to.include? modlist_id
-        channel_to_post_in = server.channels.find { |c| c.id == channel.id.to_i }
-        channel_count += 1
-        channel_to_post_in.send_embed do |embed|
-          embed.title = "#{event.author.username} just released #{modlist.title} #{modlist.version}!"
-          embed.colour = 0xbb86fc
-          embed.timestamp = Time.now
-          embed.description = message
-          # embed.url = modlist_json['links']['readme']
-          embed.image = Discordrb::Webhooks::EmbedImage.new(url: modlist.image_link)
-          embed.footer = Discordrb::Webhooks::EmbedFooter.new(text: 'WabbaBot')
-        end
-        channel_to_post_in.send_message("<@&#{listening_server.list_roles[modlist.id]}>") if listening_server.list_roles.include?(modlist.id)
+      next unless channel.listening_to.include? modlist_id
+
+      channel_to_post_in = server.channels.find { |c| c.id == channel.id.to_i }
+      channel_count += 1
+      message = channel_to_post_in.send_embed do |embed|
+        embed.title = "#{event.author.username} just released #{modlist.title} #{modlist.version}!"
+        embed.colour = 0xbb86fc
+        embed.timestamp = Time.now
+        embed.description = message
+        embed.image = Discordrb::Webhooks::EmbedImage.new(url: modlist.image_link)
+        embed.footer = Discordrb::Webhooks::EmbedFooter.new(text: 'WabbaBot')
       end
+      sent_messages.push(message)
+      channel_to_post_in.send_message("<@&#{listening_server.list_roles[modlist.id]}>") if listening_server.list_roles.include?(modlist.id)
     end
   end
-  channel_count > 0 ? "Modlist was released in #{channel_count} channels in #{server_count} servers!"
-                    : error(event, 'Failed to release modlist in any servers')
+  last_release_messages[modlist_id] = sent_messages if sent_messages.any?
+  puts "Last release messages: #{last_release_messages}"
+  channel_count.positive? ? "Modlist was released in #{channel_count} channels!" : error(event, 'Failed to release modlist in any servers')
 end
+
+@bot.command(
+  :revise,
+  description: 'Revise/edit the last release messaage for this list',
+  usage: "#{opts[:prefix]}revise <modlist id> <new message>",
+  min_args: 2
+) do |event, modlist_id, new_message|
+  modlist = @modlistmanager.get_by_id(modlist_id)
+  error(event, "Modlist with id #{modlist_id} not found") if modlist.nil?
+  error(event, 'You\'re not managing this list') unless event.author.id == modlist.author_id || $settings['admins'].include?(event.author.id)
+  error(event, 'Could not edit last message for this list - was there one?') unless last_release_messages.key? modlist_id
+
+  new_message = event.message.content.delete_prefix("#{opts[:prefix]}revise #{modlist_id} ")
+
+  embed = Discordrb::Webhooks::Embed.new
+  embed.title = "#{event.author.username} just released #{modlist.title} #{modlist.version}!"
+  embed.colour = 0xbb86fc
+  embed.timestamp = Time.now
+  embed.description = new_message
+  embed.image = Discordrb::Webhooks::EmbedImage.new(url: modlist.image_link)
+  embed.footer = Discordrb::Webhooks::EmbedFooter.new(text: 'WabbaBot')
+
+  last_release_messages[modlist_id].each do |release_message|
+    release_message.edit(release_message.content, embed)
+  end
+  return "Succesfully revised #{last_release_messages[modlist_id].length} release messages for #{modlist.title}!"
+end
+
 
 @bot.command(
   :addmodlist,

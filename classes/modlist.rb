@@ -16,9 +16,6 @@ class Modlist
 
   # Initialize a modlist with modlist id (aka machineURL), author discord ID, array of servers
   def initialize(id, author_id, modlists_json = uri_to_json($settings['modlists_url']))
-    modlist_json = modlists_json.find { |m| m['links']['machineURL'] == id }
-    raise ModlistNotFoundException if modlist_json.nil?
-
     @id = id
     @author_id = author_id
     @author = modlist_json['author']
