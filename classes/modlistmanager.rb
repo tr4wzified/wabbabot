@@ -63,11 +63,11 @@ class ModlistManager
     json = JSON.parse(File.open(@modlist_path).read)
     modlists_json = uri_to_json($settings['modlists_url'])
     json.each do |modlist|
-      modlist_json = modlists_json.find { |m| m['links']['machineURL'] == id }
+      modlist_json = modlists_json.find { |m| m['links']['machineURL'] == modlist['id'] }
       if modlist_json.nil?
-        puts "Could not find modlist #{modlist.title} in external json!"
+        puts "Could not find modlist #{modlist['title']} in external json!"
       else
-        @modlists.push(Modlist.new(modlist['id'], modlist['author_id'], modlists_json))
+        @modlists.push(Modlist.new(modlist['id'], modlist['author_id'], modlist_json))
       end
     end
   end

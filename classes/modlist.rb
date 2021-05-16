@@ -16,6 +16,11 @@ class Modlist
 
   # Initialize a modlist with modlist id (aka machineURL), author discord ID, array of servers
   def initialize(id, author_id, modlists_json = uri_to_json($settings['modlists_url']))
+    modlist_json = modlists_json.find { |m| m['links']['machineURL'] == modlist.id }
+    initialize(id, author_id, modlist_json)
+  end
+
+  def initialize(id, author_id, modlist_json)
     @id = id
     @author_id = author_id
     @author = modlist_json['author']
