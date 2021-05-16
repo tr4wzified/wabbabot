@@ -67,7 +67,7 @@ class ModlistManager
       if modlist_json.nil?
         puts "Could not find modlist #{modlist['title']} in external json!"
       else
-        @modlists.push(Modlist.new(modlist['id'], modlist['author_id'], modlist_json))
+        @modlists.push(Modlist.new_with_json(modlist['id'], modlist['author_id'], modlist_json))
       end
     end
   end
