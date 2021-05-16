@@ -15,12 +15,8 @@ class Modlist
               :download_link
 
   # Initialize a modlist with modlist id (aka machineURL), author discord ID, array of servers
-  def initialize(id, author_id, modlists_json = uri_to_json($settings['modlists_url']))
-    modlist_json = modlists_json.find { |m| m['links']['machineURL'] == id }
-    new_with_json(id, author_id, modlist_json)
-  end
-
-  def self.new_with_json(id, author_id, modlist_json)
+  def initialize(id, author_id, modlists_json = uri_to_json($settings['modlists_url']), modlist_json = nil)
+    modlist_json ||= modlists_json.find { |m| m['links']['machineURL'] == id }
     @id = id
     @author_id = author_id
     @author = modlist_json['author']
