@@ -4,20 +4,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug Local",
+            "name": "Debug Local File (Ruby)",
             "type": "Ruby",
             "request": "launch",
-            "cwd": "${workspaceRoot}",
-            "debuggerPort": "1234",
             "program": "${workspaceRoot}/main.rb",
-            "showDebuggerOutput": true,
-            "useBundler": true,
-            "pathToBundler": "${env:BUNDLE_PATH}",
-            "pathToRDebugIDE": "${workspaceRoot}/bin/rdebug-ide",
-            "env": {
-                "PATH": "${env:PATH}",
-                "DISCORDRB_NONACL": "Ignore libsodium check"
-            }
+            "pathToRDebugIDE": "/home/fire/.gem/ruby/2.7.0/bin/rdebug-ide",
+            "env":{
+                "PATH": "/usr/share/zsh/scripts/zplug/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/opt/android-sdk/tools:/opt/android-sdk/tools/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/fire/.gem/ruby/2.7.0/bin"
+            },
         }
     ]
 }

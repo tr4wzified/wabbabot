@@ -126,7 +126,8 @@ end
     listening_server.listening_channels.each do |channel|
       next unless channel.listening_to.include? modlist_id
 
-      channel_to_post_in = server.channels.find { |c| c.id == channel.id.to_i }
+      error(event, 'Could not find the channel to post in!') if (channel_to_post_in = server.channels.find { |c| c.id == channel.id.to_i } ).nil?
+      
       channel_count += 1
       message = channel_to_post_in.send_embed do |embed|
         embed.title = "#{event.author.username} just released #{modlist.title} #{modlist.version}!"
