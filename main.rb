@@ -92,11 +92,11 @@ end
   error(event, "Modlist with id #{modlist_id} not found") if (modlist = @modlistmanager.get_by_id(modlist_id)).nil?
   error(event, 'There are no servers listening to this modlist') if (servers = @servermanager.get_servers_listening_to_id(modlist_id)).nil?
   servers.each do |server|
+    next unless (channels = server.listening_channels.filter { |c| c.listening_to.include?(modlist_id) }).any?
+
     message << "Server #{server.name} (`#{server.id}`) is listening to #{modlist.title} in the following channels: "
-    channels = server.get_channels_listening_to(modlist_id)
-    channels.each do |channel|
-      message << "`#{channel.id}` "
-    end
+    channels.each { |channel| message << "`#{channel.id}`, " }
+    message.delete_suffix!(', ')
     message << "\n"
   end
   return message
