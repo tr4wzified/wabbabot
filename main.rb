@@ -108,7 +108,7 @@ end
   usage: "#{opts[:prefix]}release <modlist id> <message>",
   min_args: 1
 ) do |event, modlist_id|
-  modlistmanager_json = uri_to_json($settings['modlists_url'])
+  #modlistmanager_json = uri_to_json($settings['modlists_url'])
 
   modlist = @modlistmanager.get_by_id(modlist_id)
   error(event, "Modlist with id #{modlist_id} not found") if modlist.nil?
