@@ -77,7 +77,7 @@ end
   error(event, 'This server is not listening to any modlists yet') if (server = @servermanager.get_server_by_id(event.server.id)).nil?
   channel = get_server_channel_for_channel(event, channel)
   error(event, "Modlist with id #{modlist_id} does not exist") if (modlist = @modlistmanager.get_by_id(modlist_id)).nil?
-  return "No longer listening to #{modlist.title} in #{channel.name}." if @servermanager.unlisten(server, channel.id, modlist_id)
+  @servermanager.unlisten(server, channel.id, modlist_id) ? "No longer listening to #{modlist.title} in #{channel.name}." : error(event, "#{modlist.title} wasn't listening to #{channel.name}!")
 end
 
 @bot.command(
@@ -99,6 +99,9 @@ end
     message.delete_suffix!(', ')
     message << "\n"
   end
+
+  error(event, 'There are no servers listening to this modlist') if message == ''
+
   return message
 end
 
@@ -120,14 +123,12 @@ end
   modlist.refresh
   sent_messages = []
   listening_servers.each do |listening_server|
-    server = @bot.servers[listening_server.id]
     listening_server.listening_channels.each do |channel|
       next unless channel.listening_to.include? modlist_id
 
-      error(event, 'Could not find the channel to post in!') if (channel_to_post_in = server.channels.find { |c| c.id == channel.id.to_i } ).nil?
-      
-      channel_count += 1
-      message = channel_to_post_in.send_embed do |embed|
+      discordrb_server = @bot.servers[listening_server.id]
+      channel_to_post_in = channel.to_discordrb_channel(discordrb_server)
+      posted_message = channel_to_post_in.send_embed do |embed|
         embed.title = "#{event.author.username} just released #{modlist.title} #{modlist.version}!"
         embed.colour = 0xbb86fc
         embed.timestamp = Time.now
@@ -135,12 +136,12 @@ end
         embed.image = Discordrb::Webhooks::EmbedImage.new(url: modlist.image_link)
         embed.footer = Discordrb::Webhooks::EmbedFooter.new(text: 'WabbaBot')
       end
-      sent_messages.push(message)
+      sent_messages.push(posted_message)
+      channel_count += 1
       channel_to_post_in.send_message("<@&#{listening_server.list_roles[modlist.id]}>") if listening_server.list_roles.include?(modlist.id)
     end
   end
   last_release_messages[modlist_id] = sent_messages if sent_messages.any?
-  puts "Last release messages: #{last_release_messages}"
   channel_count.positive? ? "Modlist was released in #{channel_count} channels!" : error(event, 'Failed to release modlist in any servers')
 end
 
@@ -236,14 +237,14 @@ def error(event, message)
   raise error_msg
 end
 
-# Error out when someone calls this method and isn't a bot administrator
+# Error out when someone calls this method and isn't a @bot administrator
 def admins_only(event)
   author = event.author
-  error_msg = 'This command is reserved for bot administrators'
+  error_msg = 'This command is reserved for @bot administrators'
   error(event, error_msg) unless $settings['admins'].include? author.id
 end
 
-# Error out when someone calls this method and isn't a bot administrator or a person that can manage roles
+# Error out when someone calls this method and isn't a @bot administrator or a person that can manage roles
 def manage_roles_only(event)
   author = event.author
   error_msg = 'This command is reserved for people with the Manage Roles permission'
@@ -254,6 +255,7 @@ def get_server_channel_for_channel(event, channel)
   # Format of channel: <#717201910364635147>
   error(event, 'Invalid channel provided') unless (match = channel.match(/<#([0-9]+)>/))
   error(event, 'Channel does not exist in server') if (server_channel = event.server.channels.find { |c| c.id == match.captures[0].to_i }).nil?
+  return server_channel
 end
 
 def get_member_for_user(event, user)
@@ -261,6 +263,7 @@ def get_member_for_user(event, user)
   match = user.match(/<@!?([0-9]+)>/)
   user_id = match.nil? ? user.to_i : match.captures[0].to_i
   error(event, 'User does not exist in server') if (member = event.server.members.find { |m| m.id == user_id }).nil?
+  return member
 end
 
 def get_server_role_for_role(event, role)
@@ -268,6 +271,7 @@ def get_server_role_for_role(event, role)
   match = role.match(/<@&?([0-9]+)>/)
   role_id = match.nil? ? role.to_i : match.captures[0].to_i
   error(event, 'Role does not exist in server') if (server_role = event.server.roles.find { |r| r.id == role_id }).nil?
+  return server_role
 end
 
 @bot.run

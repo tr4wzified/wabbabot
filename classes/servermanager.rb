@@ -28,10 +28,11 @@ class ServerManager
   end
 
   def unlisten(server, channel_id, modlist_id)
-    server.unlisten_to_list_in_channel(channel_id, modlist_id)
-    puts server.listening_channels
+    successful = server.unlisten_to_list_in_channel(channel_id, modlist_id)
     @servers.delete(server) if server.listening_channels.empty?
     save
+
+    return successful
   end
 
   def get_server_by_id(server_id)

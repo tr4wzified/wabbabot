@@ -30,12 +30,11 @@ class Server
 
   def unlisten_to_list_in_channel(channel_id, modlist_id)
     channel = @listening_channels.find { |listening_channel| listening_channel.id == channel_id }
-    if channel.nil?
-      return false
-    else
-      channel.unlisten_to(modlist_id)
-      @listening_channels.delete(channel) if channel.listening_to.empty?
-    end
+    return false if channel.nil?
+
+    successful = channel.unlisten_to(modlist_id)
+    @listening_channels.delete(channel) if channel.listening_to.empty?
+    return successful
   end
 
   def get_channels_listening_to(modlist_id)
