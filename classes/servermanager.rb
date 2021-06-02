@@ -13,10 +13,9 @@ class ServerManager
     servers_to_return = []
     @servers.each do |server|
       server.listening_channels.each do |channel|
-       servers_to_return.push(server) if channel.listening_to.include?(modlist_id) && !servers_to_return.include?(server)
+        servers_to_return.push(server) if channel.listening_to.include?(modlist_id) && !servers_to_return.include?(server)
       end
     end
-    return servers_to_return
   end
 
   def del_listeners_to_id(modlist_id)

@@ -108,8 +108,6 @@ end
   usage: "#{opts[:prefix]}release <modlist id> <message>",
   min_args: 1
 ) do |event, modlist_id|
-  #modlistmanager_json = uri_to_json($settings['modlists_url'])
-
   modlist = @modlistmanager.get_by_id(modlist_id)
   error(event, "Modlist with id #{modlist_id} not found") if modlist.nil?
   error(event, 'You\'re not managing this list') unless event.author.id == modlist.author_id || $settings['admins'].include?(event.author.id)
@@ -256,7 +254,6 @@ def get_server_channel_for_channel(event, channel)
   # Format of channel: <#717201910364635147>
   error(event, 'Invalid channel provided') unless (match = channel.match(/<#([0-9]+)>/))
   error(event, 'Channel does not exist in server') if (server_channel = event.server.channels.find { |c| c.id == match.captures[0].to_i }).nil?
-  return server_channel
 end
 
 def get_member_for_user(event, user)
@@ -264,7 +261,6 @@ def get_member_for_user(event, user)
   match = user.match(/<@!?([0-9]+)>/)
   user_id = match.nil? ? user.to_i : match.captures[0].to_i
   error(event, 'User does not exist in server') if (member = event.server.members.find { |m| m.id == user_id }).nil?
-  return member
 end
 
 def get_server_role_for_role(event, role)
@@ -272,8 +268,6 @@ def get_server_role_for_role(event, role)
   match = role.match(/<@&?([0-9]+)>/)
   role_id = match.nil? ? role.to_i : match.captures[0].to_i
   error(event, 'Role does not exist in server') if (server_role = event.server.roles.find { |r| r.id == role_id }).nil?
-  return server_role
 end
-
 
 @bot.run
