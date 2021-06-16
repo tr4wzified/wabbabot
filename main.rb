@@ -226,7 +226,8 @@ end
   description: 'Presents a list of all modlists',
   usage: "#{opts[:prefix]}showmodlists"
 ) do |event|
-  manage_roles_only(event)
+  #manage_roles_only(event)
+  admins_only(event)
 
   event.channel.split_send(@modlistmanager.show)
 end
